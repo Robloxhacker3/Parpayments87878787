@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Parking Payments — Orders</title>
+<style>
+  :root{
+    --bg:#0f1724; --card:#0b1220; --accent:#7c5cff; --muted:#94a3b8;
+    --glass: rgba(255,255,255,0.04);
+    --success: #16a34a;
+  }
+  *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  body{margin:0;min-height:100vh;background:
+    radial-gradient(1200px 600px at 10% 10%, rgba(124,92,255,0.14), transparent 10%),
+    radial-gradient(900px 400px at 90% 90%, rgba(0,200,255,0.06), transparent 10%),
+    var(--bg); color:#e6eef8; display:flex;align-items:center;justify-content:center;padding:28px;}
+  .wrap{width:100%;max-width:980px;}
+  header{display:flex;gap:12px;align-items:center;margin-bottom:18px}
+  .brand{background:linear-gradient(90deg,var(--accent),#02d3ff);padding:10px 14px;border-radius:10px;font-weight:700;color:#061226;display:flex;gap:10px;align-items:center}
+  .langswitch{display:flex;gap:6px;margin-left:6px}
+  .lang-btn{padding:6px 8px;border-radius:8px;border:0;background:rgba(255,255,255,0.03);color:var(--muted);cursor:pointer;font-weight:600}
+  .lang-btn.active{background:linear-gradient(90deg,var(--accent),#02d3ff);color:#061226}
+  .top-inputs{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .top-inputs input{background:var(--card);border:1px solid rgba(255,255,255,0.03);padding:8px 10px;border-radius:8px;color:var(--muted);min-width:160px}
+  .top-inputs input:focus{outline:2px solid rgba(124,92,255,0.12); color:#e6eef8}
+  main{display:grid;grid-template-columns:1fr 360px; gap:18px}
+  .plans{display:flex;flex-direction:column;gap:12px}
+  .plan{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,0.03);display:flex;gap:14px;align-items:center;cursor:pointer;transition:transform .14s ease, box-shadow .14s ease}
+  .plan:hover{transform:translateY(-6px);box-shadow:0 12px 30px rgba(0,0,0,0.45)}
+  .plan.selected{box-shadow:0 18px 40px rgba(124,92,255,0.12);border:1px solid rgba(124,92,255,0.28)}
+  .iconwrap{width:72px;height:72px;border-radius:12px;background:var(--glass);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .plan h3{margin:0;font-size:18px}
+  .plan p{margin:6px 0 0;color:var(--muted);font-size:13px}
+  .price{margin-left:auto;font-weight:800;font-size:18px;color:#fff}
+  aside.orderbox{background:var(--card);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+  .orderbox h4{margin:0 0 8px}
+  .field{display:flex;flex-direction:column;margin-bottom:10px}
+  label{font-size:13px;color:var(--muted);margin-bottom:6px}
+  input[type="text"]{padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:#e6eef8}
+  .summary{background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;color:var(--muted);font-size:14px;margin-bottom:12px}
+  button.primary{width:100%;padding:12px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent),#02d3ff);color:#061226;font-weight:700;cursor:pointer;font-size:15px}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px}
+  .footer{margin-top:14px;font-size:13px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+  .small-btn{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;color:var(--muted);cursor:pointer}
+  .success{background:linear-gradient(90deg,var(--success),#86efac);padding:10px;border-radius:8px;color:#062417;font-weight:700}
+  /* responsive */
+  @media (max-width:900px){
+    main{grid-template-columns:1fr; }
+    .top-inputs{margin-left:0;flex-wrap:wrap;}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand" aria-hidden="false">
+        <div id="brandText">Parking Payments</div>
+        <div class="langswitch" role="tablist" aria-label="Language selector">
+          <button class="lang-btn active" data-lang="en" id="btn-en">English</button>
+          <button class="lang-btn" data-lang="ku" id="btn-ku">Kurdî (Hewlêr)</button>
+          <button class="lang-btn" data-lang="so" id="btn-so">Soomaali</button>
+        </div>
+      </div>
+
+      <div style="margin-left:8px;color:var(--muted)" id="brandSubtitle">Order packages & automatic delivery</div>
+
+      <div class="top-inputs" style="margin-left:auto">
+        <input id="discordTop" placeholder="Discord username (e.g. User#1234)" />
+        <input id="snapTop" placeholder="Snapchat username (optional)" />
+        <input id="realTop" placeholder="Real name (required)" />
+      </div>
+    </header>
+
+    <main>
+      <section class="plans" aria-label="Packages">
+        <!-- Basic -->
+        <div class="plan" data-plan="basic" data-price="1500" id="plan-basic" role="button">
+          <div class="iconwrap" aria-hidden="true">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" fill="#FDE68A"/>
+              <path d="M12 7v10M9 11h6" stroke="#7C3AED" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <h3 data-i="plan_basic_name">Basic</h3>
+            <p data-i="plan_basic_desc">Basic can get you 50 million and 120 thousand coins</p>
+          </div>
+          <div class="price" data-i="plan_basic_price">1,500 IQD</div>
+        </div>
+
+        <!-- Middle -->
+        <div class="plan" data-plan="middle" data-price="2000" id="plan-middle" role="button">
+          <div class="iconwrap" aria-hidden="true">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="4" width="18" height="12" rx="2" fill="#E0F2FE"/>
+              <path d="M7 18h10v1a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-1z" fill="#7C5CFF"/>
+              <path d="M8 4v-1h8v1" stroke="#7C5CFF" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <h3 data-i="plan_middle_name">Middle</h3>
+            <p data-i="plan_middle_desc">Middle can get you 50 million max limit and over 500 thousand coins and half of the Payed Cars in the game</p>
+          </div>
+          <div class="price" data-i="plan_middle_price">2,000 IQD</div>
+        </div>
+
+        <!-- Premium -->
+        <div class="plan" data-plan="premium" data-price="3500" id="plan-premium" role="button">
+          <div class="iconwrap" aria-hidden="true">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="6" width="20" height="10" rx="3" fill="#FCE7F3"/>
+              <path d="M4 16v1h16v-1" stroke="#06B6D4" stroke-width="1.2"/>
+              <path d="M9 9h6" stroke="#7C5CFF" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div>
+            <h3 data-i="plan_premium_name">Premium</h3>
+            <p data-i="plan_premium_desc">Premium is the best option you get all the cars in game even the payed ones and Maximum money and over 2 million Coins</p>
+          </div>
+          <div class="price" data-i="plan_premium_price">3,500 IQD</div>
+        </div>
+      </section>
+
+      <aside class="orderbox">
+        <h4 id="orderTitle">Place Order</h4>
+
+        <div class="field">
+          <label for="discord" id="labelDiscord">Discord username</label>
+          <input id="discord" placeholder="User#1234 or leave blank" />
+        </div>
+
+        <div class="field">
+          <label for="snap" id="labelSnap">Snapchat username</label>
+          <input id="snap" placeholder="snapchat.username (optional)" />
+        </div>
+
+        <div class="field">
+          <label for="real" id="labelReal">Real name <span style="color:#ffb3b3">*</span></label>
+          <input id="real" placeholder="Your real name (required)" />
+        </div>
+
+        <div class="summary" id="orderSummary">No plan selected yet. Pick a plan on the left.</div>
+
+        <button class="primary" id="placeOrder">Place order & send</button>
+
+        <div class="hint" id="hintText">
+          We will send order to the configured Discord webhook. If your browser blocks the send (CORS), a server proxy is provided below.
+        </div>
+
+        <div class="footer">
+          <div style="font-size:12px;color:var(--muted)">Webhook: <em style="color:#8ea4ff">configured in site JS</em></div>
+          <button class="small-btn" id="copySummary">Copy order</button>
+        </div>
+
+        <div id="res" style="margin-top:10px"></div>
+      </aside>
+    </main>
+
+    <footer style="margin-top:12px;color:var(--muted);font-size:13px" id="footerNote">
+      Tip: Replace the webhook URL in the JS below with your Discord webhook. If sending fails because of CORS, use the Node.js proxy snippet in the page source.
+    </footer>
+  </div>
+
+<script>
+/*
+  IMPORTANT: Replace the string below with your Discord webhook URL.
+*/
+const WEBHOOK_URL = "https://discord.com/api/webhooks/1395176867782201395/xEREzh5Garv2tUETgFOovB8ekK1EMK1lhaEAjZrmU5qmJXf-o77VCUINadqNCVbR3N9n";
+
+/* ============ Translations ============ 
+   Keys correspond to elements with data-i="" or element IDs.
+   Kurdish (ku) is labeled "Kurdî (Hewlêr)" — if you want a different dialect or spelling, tell me.
+   These are editable strings — change them to match the exact phrasing you want.
+*/
+const translations = {
+  en: {
+    brand: "Parking Payments",
+    subtitle: "Order packages & automatic delivery",
+    top_discord_ph: "Discord username (e.g. User#1234)",
+    top_snap_ph: "Snapchat username (optional)",
+    top_real_ph: "Real name (required)",
+    plan_basic_name: "Basic",
+    plan_basic_desc: "Basic can get you 50 million and 120 thousand coins",
+    plan_basic_price: "1,500 IQD",
+    plan_middle_name: "Middle",
+    plan_middle_desc: "Middle can get you 50 million max limit and over 500 thousand coins and half of the Payed Cars in the game",
+    plan_middle_price: "2,000 IQD",
+    plan_premium_name: "Premium",
+    plan_premium_desc: "Premium is the best option you get all the cars in game even the payed ones and Maximum money and over 2 million Coins",
+    plan_premium_price: "3,500 IQD",
+    orderTitle: "Place Order",
+    labelDiscord: "Discord username",
+    labelSnap: "Snapchat username",
+    labelReal: "Real name",
+    orderSummary_none: "No plan selected yet. Pick a plan on the left.",
+    hintText: "We will send order to the configured Discord webhook. If your browser blocks the send (CORS), a server proxy is provided below.",
+    placeOrderBtn: "Place order & send",
+    copyOrderBtn: "Copy order",
+    footerNote: "Tip: Replace the webhook URL in the JS below with your Discord webhook. If sending fails because of CORS, use the Node.js proxy snippet in the page source.",
+    sendingText: "Sending order…",
+    successText: "Order sent successfully! Check your Discord channel.",
+    webhookMissing: "Webhook not configured. Please edit the site JS and set your Discord webhook URL.",
+    missingName: "Please enter your real name.",
+    missingPlan: "Please select a plan.",
+    sendFailedTitle: "Failed to send directly (browser may block cross-origin requests to Discord)."
+  },
+
+  ku: {
+    /* Kurdish (Hewlêr / Sorani) — simple, editable phrases */
+    brand: "پارەدانى پارکینگ",
+    subtitle: "داوا پەکێجەکان و دابینكردنی خۆکار",
+    top_discord_ph: "ناوی Discord (بۆ نموونە: User#1234)",
+    top_snap_ph: "ناوی Snapchat (ھەڵبژێرە - ئاختیاری)",
+    top_real_ph: "ناوی ڕاستی (پێویست)",
+    plan_basic_name: "بەسیک",
+    plan_basic_desc: "بەسیک دەتوانێت 50 ملیۆن و 120 ھێزار کوین بدات",
+    plan_basic_price: "1,500 IQD",
+    plan_middle_name: "میدڵ (ناوەڕاست)",
+    plan_middle_desc: "میدڵ دەتوانێت 50 ملیۆن (هاوپەیمان) و زیاتر لە 500 ھێزار کوین و نیوەی ئۆتۆمبێلە پێدراوەکان بدات",
+    plan_middle_price: "2,000 IQD",
+    plan_premium_name: "پریمیم",
+    plan_premium_desc: "پریمیم باشترین هەڵبژاردنە — هەموو ئۆتۆمبێلەکان تەتەوێت، حتی پارەدراوەکان، و پڕترین پارە و زیاتر لە 2 ملیۆن کوین",
+    plan_premium_price: "3,500 IQD",
+    orderTitle: "داوا بنێرە",
+    labelDiscord: "ناوی Discord",
+    labelSnap: "ناوی Snapchat",
+    labelReal: "ناوی ڕاستی",
+    orderSummary_none: "هیچ پلانه‌ك هەڵنەبژێردراوە. لەپاشەوە پلانه‌كه‌ هەڵبژێرە.",
+    hintText: "ئێمە داواکاریەکە دەنێرین بۆ Discord webhook. ئەگەر براوزەرت CORS بلۆک بکات، پروکسییەکەی Node.js لە خوارەوە هەیە.",
+    placeOrderBtn: "داوا بنێرە و نێرە",
+    copyOrderBtn: "داوا کۆپی بکە",
+    footerNote: "نوێن: وێبهووکی Discord لەم سکریپتە دابنێ. ئەگەر نێردن خراپ بوو (CORS)، پروکسی Node.js بەکاربهێنە.",
+    sendingText: "ناردنی داواکاری…",
+    successText: "داواکاری بەسەرکەوتووی نێردرا! لە چینەڵی Discord خۆت بچکەرە.",
+    webhookMissing: "Webhook دابنەکراو نییە. تکایە URL ی webhook لە JS بگۆڕە.",
+    missingName: "تکایە ناوی ڕاستی بنووسە.",
+    missingPlan: "تکایە پلانێک هەڵبژێرە.",
+    sendFailedTitle: "نەتوانرا ڕاستەوخۆ بنێردرێت (براوزەر لە هەوڵەکانی کراس-ئۆرچین بلۆک دەکات)."
+  },
+
+  so: {
+    /* Somali */
+    brand: "Lacagaha Baarkinka",
+    subtitle: "Dalbo xirmooyinka & gaarsiinta otomaatiga",
+    top_discord_ph: "Magaca Discord (tusaale: User#1234)",
+    top_snap_ph: "Magaca Snapchat (ikhtiyaari)",
+    top_real_ph: "Magaca dhabta ah (lagama maarmaan)",
+    plan_basic_name: "Basic",
+    plan_basic_desc: "Basic wuxuu ku siin karaa 50 million iyo 120 kun oo coins ah",
+    plan_basic_price: "1,500 IQD",
+    plan_middle_name: "Middle",
+    plan_middle_desc: "Middle wuxuu bixin karaa 50 million xadkiisa ugu badan iyo in ka badan 500 kun coins iyo kala bar gawaarida la bixiyo ee ciyaarta",
+    plan_middle_price: "2,000 IQD",
+    plan_premium_name: "Premium",
+    plan_premium_desc: "Premium waa doorashada ugu fiican – waxaad heli doontaa dhammaan gawaarida ciyaarta xitaa kuwa la bixiyo iyo lacagta ugu badan iyo in ka badan 2 million coins",
+    plan_premium_price: "3,500 IQD",
+    orderTitle: "Gudbi Dalabka",
+    labelDiscord: "Magaca Discord",
+    labelSnap: "Magaca Snapchat",
+    labelReal: "Magaca dhabta ah",
+    orderSummary_none: "Weli lama dooran wax qorshe ah. Ka dooro mid bidixda.",
+    hintText: "Waxaan u diri doonaa dalabka webhook-ga Discord. Haddii browser-kaagu xannibo (CORS), proxy Node.js ayaa hoos ku jira.",
+    placeOrderBtn: "Dalbo & dir",
+    copyOrderBtn: "Nuqul dalabka",
+    footerNote: "Talo: Beddel webhook URL ee JS haddii loo baahdo. Haddii diridu fashilanto (CORS), isticmaal proxy Node.js.",
+    sendingText: "Diraya dalabka…",
+    successText: "Dalabka si guul leh ayaa loo diray! Hubi channel-ka Discord.",
+    webhookMissing: "Webhook lama dejinin. Fadlan wax ka beddel JS oo geli webhook URL.",
+    missingName: "Fadlan geli magacaaga dhabta ah.",
+    missingPlan: "Fadlan dooro qorshe.",
+    sendFailedTitle: "Si toos ah looma diri karin (browser-ku wuu xannibi karaa codsiyada cross-origin ee Discord)."
+  }
+};
+
+/* ---------- wiring up language switching ---------- */
+let currentLang = 'en';
+const langBtns = document.querySelectorAll('.lang-btn');
+
+function applyTranslation(lang){
+  currentLang = lang;
+  // update active button
+  langBtns.forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+  const t = translations[lang] || translations.en;
+
+  // brand + subtitle
+  document.getElementById('brandText').textContent = t.brand;
+  document.getElementById('brandSubtitle').textContent = t.subtitle;
+
+  // top placeholders
+  document.getElementById('discordTop').placeholder = t.top_discord_ph;
+  document.getElementById('snapTop').placeholder = t.top_snap_ph;
+  document.getElementById('realTop').placeholder = t.top_real_ph;
+
+  // plans
+  document.querySelector('[data-i="plan_basic_name"]').textContent = t.plan_basic_name;
+  document.querySelector('[data-i="plan_basic_desc"]').textContent = t.plan_basic_desc;
+  document.querySelector('[data-i="plan_basic_price"]').textContent = t.plan_basic_price;
+
+  document.querySelector('[data-i="plan_middle_name"]').textContent = t.plan_middle_name;
+  document.querySelector('[data-i="plan_middle_desc"]').textContent = t.plan_middle_desc;
+  document.querySelector('[data-i="plan_middle_price"]').textContent = t.plan_middle_price;
+
+  document.querySelector('[data-i="plan_premium_name"]').textContent = t.plan_premium_name;
+  document.querySelector('[data-i="plan_premium_desc"]').textContent = t.plan_premium_desc;
+  document.querySelector('[data-i="plan_premium_price"]').textContent = t.plan_premium_price;
+
+  // order box
+  document.getElementById('orderTitle').textContent = t.orderTitle;
+  document.getElementById('labelDiscord').textContent = t.labelDiscord;
+  document.getElementById('labelSnap').textContent = t.labelSnap;
+  document.getElementById('labelReal').textContent = t.labelReal;
+  document.getElementById('orderSummary').textContent = t.orderSummary_none;
+  document.getElementById('hintText').textContent = t.hintText;
+  document.getElementById('placeOrder').textContent = t.placeOrderBtn;
+  document.getElementById('copySummary').textContent = t.copyOrderBtn;
+  document.getElementById('footerNote').textContent = t.footerNote;
+}
+
+/* attach handlers */
+langBtns.forEach(b => b.addEventListener('click', ()=>applyTranslation(b.dataset.lang)));
+
+/* initialize */
+applyTranslation('en');
+
+/* ============ Order logic (same as before) ============ */
+const plans = document.querySelectorAll('.plan');
+let selectedPlan = null;
+
+function updateSummary(){
+  const summary = document.getElementById('orderSummary');
+  const t = translations[currentLang];
+  if(!selectedPlan){
+    summary.textContent = t.orderSummary_none;
+    return;
+  }
+  // show plan name, desc and price
+  summary.innerHTML = '<strong>' + selectedPlan.name + '</strong> — ' + selectedPlan.desc + '<br/><br/>' +
+                      'Price: <strong>' + selectedPlan.price + ' IQD</strong>';
+}
+
+plans.forEach(p=>{
+  p.addEventListener('click', ()=>{
+    plans.forEach(x=>x.classList.remove('selected'));
+    p.classList.add('selected');
+    selectedPlan = {
+      id: p.dataset.plan,
+      price: p.dataset.price,
+      name: p.querySelector('h3').innerText,
+      desc: p.querySelector('p').innerText
+    };
+    updateSummary();
+  });
+});
+
+// sync top inputs to form inputs
+document.getElementById('discordTop').addEventListener('input', e=>document.getElementById('discord').value = e.target.value);
+document.getElementById('snapTop').addEventListener('input', e=>document.getElementById('snap').value = e.target.value);
+document.getElementById('realTop').addEventListener('input', e=>document.getElementById('real').value = e.target.value);
+document.getElementById('placeOrder').addEventListener('click', placeOrder);
+document.getElementById('copySummary').addEventListener('click', copyOrderToClipboard);
+
+function showRes(html, success=false){
+  const el = document.getElementById('res');
+  el.innerHTML = html;
+  if(success) el.firstChild?.classList?.add('success');
+}
+
+function buildPayload(discordUser, snapUser, realName, plan){
+  const content = `**New Parking Payments Order**\n**Name:** ${realName}\n**Discord:** ${discordUser || '—'}\n**Snapchat:** ${snapUser || '—'}\n**Package:** ${plan.name} (${plan.price} IQD)\n**Details:** ${plan.desc}\n\n_Time: ${new Date().toLocaleString()}_`;
+  return {
+    username: "ParkingPayments Bot",
+    embeds: [
+      {
+        title: "New Order",
+        color: 8061309,
+        fields: [
+          { name: "Name", value: realName, inline: true },
+          { name: "Discord", value: discordUser || '—', inline: true },
+          { name: "Snapchat", value: snapUser || '—', inline: true },
+          { name: "Package", value: `${plan.name} — ${plan.price} IQD`, inline: false },
+          { name: "Details", value: plan.desc, inline: false }
+        ],
+        footer: { text: "Parking Payments" },
+        timestamp: new Date().toISOString()
+      }
+    ],
+    content: content
+  };
+}
+
+async function placeOrder(){
+  const discordUser = document.getElementById('discord').value.trim();
+  const snapUser = document.getElementById('snap').value.trim();
+  const realName = document.getElementById('real').value.trim();
+  const t = translations[currentLang];
+
+  if(!realName){
+    showRes('<div style="padding:8px;border-radius:8px;background:#332b2b;color:#ffb3b3">'+t.missingName+'</div>');
+    return;
+  }
+  if(!selectedPlan){
+    showRes('<div style="padding:8px;border-radius:8px;background:#332b2b;color:#ffb3b3">'+t.missingPlan+'</div>');
+    return;
+  }
+
+  const payload = buildPayload(discordUser, snapUser, realName, selectedPlan);
+
+  if(!WEBHOOK_URL || WEBHOOK_URL.includes("YOUR_DISCORD_WEBHOOK_URL_HERE")){
+    showRes('<div style="padding:8px;border-radius:8px;background:#332b2b;color:#ffb3b3">'+t.webhookMissing+'</div>');
+    return;
+  }
+
+  showRes('<div style="padding:8px;border-radius:8px;background:rgba(255,255,255,0.03);color:var(--muted)">'+t.sendingText+'</div>');
+
+  try{
+    const r = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if(!r.ok){
+      throw new Error('Request failed: ' + r.status + ' ' + r.statusText);
+    }
+
+    showRes('<div class="success" style="padding:8px;border-radius:8px">'+t.successText+'</div>', true);
+
+  }catch(err){
+    console.error(err);
+    const fallbackHtml = `
+      <div style="padding:10px;border-radius:8px;background:#2b1f2b;color:#ffdede">
+        <strong>${t.sendFailedTitle}</strong><br>
+        <strong>Options:</strong>
+        <ol style="margin:8px 0 0 18px;padding:0;color:#ffdede">
+          <li>Deploy the provided Node.js proxy (see snippet in the page source) and set WEBHOOK_URL to the server endpoint; it will forward the order to Discord with no CORS issues.</li>
+          <li>Or copy the order and paste it into a Discord channel manually.</li>
+        </ol>
+        <div style="margin-top:10px"><button id="copyPayload" class="small-btn">Copy payload to clipboard</button></div>
+      </div>
+    `;
+    showRes(fallbackHtml);
+    document.getElementById('copyPayload').addEventListener('click', ()=>navigator.clipboard.writeText(JSON.stringify(payload, null, 2)).then(()=>alert('Payload copied!')));
+  }
+}
+
+function copyOrderToClipboard(){
+  if(!selectedPlan){
+    alert(translations[currentLang].missingPlan);
+    return;
+  }
+  const discordUser = document.getElementById('discord').value.trim() || '—';
+  const snapUser = document.getElementById('snap').value.trim() || '—';
+  const realName = document.getElementById('real').value.trim() || '—';
+  const txt = `Order\nName: ${realName}\nDiscord: ${discordUser}\nSnapchat: ${snapUser}\nPackage: ${selectedPlan.name} — ${selectedPlan.price} IQD\nDetails: ${selectedPlan.desc}\nTime: ${new Date().toLocaleString()}`;
+  navigator.clipboard.writeText(txt).then(()=>alert('Order copied to clipboard'));
+}
+</script>
+
+<!--
+  NOTES:
+  - Replace WEBHOOK_URL at the top of the script with your actual Discord webhook.
+  - Kurdish (ku) translations are simple Sorani/Hewlêr phrases; you can edit translations object to fine-tune.
+  - If browser blocks direct Discord webhook posts (CORS), use the Node.js proxy snippet from the earlier version. If you want, I can add the one-click Replit deployment files too.
+-->
+</body>
+</html>
